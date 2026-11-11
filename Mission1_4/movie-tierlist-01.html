@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>내 영화 티어리스트</title>
+  <style>
+    :root { --paper:#faf8f3; --ink:#242922; --muted:#5f685d; --line:#d9dad1; --green:#276453; --sage:#e3eee7; --peach:#f2e6dc; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:system-ui,-apple-system,sans-serif; line-height:1.6; }
+    main { width:min(100% - 32px,860px); margin:32px auto 48px; }
+    header { display:flex; align-items:start; justify-content:space-between; gap:20px; flex-wrap:wrap; }
+    h1 { margin:0; font-size:clamp(26px,5vw,34px); line-height:1.25; letter-spacing:-.03em; }
+    .sub { margin:10px 0 0; color:var(--muted); max-width:46ch; }
+    .tools { display:flex; flex-wrap:wrap; gap:8px; width:100%; margin-top:20px; }
+    .tools input { min-width:0; flex:1 1 160px; border:1.5px solid var(--line); border-radius:12px; padding:11px 12px; font:inherit; }
+    .tools select { min-width:0; flex:0 1 auto; max-width:100%; border:1.5px solid var(--line); border-radius:12px; padding:10px 8px; font:inherit; background:#fff; color:var(--ink); }
+    button { font:inherit; cursor:pointer; }
+    .tools button { padding:10px 15px; border:1px solid var(--green); border-radius:12px; font-weight:700; background:var(--green); color:#fff; }
+    .tools .reset { color:var(--green); background:#fff; }
+    .filters { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin-top:14px; }
+    .filters .filter-title { font-size:14px; font-weight:700; color:var(--muted); margin-right:4px; }
+    .filters button { padding:4px 12px; border:1.5px solid var(--line); border-radius:999px; background:#fff; color:var(--ink); font-size:14px; font-weight:600; }
+    .filters button[aria-pressed="true"] { background:var(--green); border-color:var(--green); color:#fff; }
+    #message { min-height:26px; margin:14px 0; font-size:14px; color:var(--muted); }
+    .tiers { display:grid; gap:10px; }
+    .row { display:flex; min-height:112px; background:#fff; border:1.5px solid var(--line); border-radius:14px; overflow:hidden; }
+    .row.over { outline:3px solid var(--green); outline-offset:1px; }
+    .label { width:128px; flex-shrink:0; border:0; color:#1b1d1a; padding:10px 6px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px; text-align:center; }
+    .label .letter { font-size:12px; font-weight:800; line-height:1; padding:3px 7px; border-radius:999px; background:rgba(0,0,0,.14); }
+    .label .name { font-size:22px; font-weight:800; line-height:1.3; margin-top:4px; }
+    .label .desc { font-size:12px; font-weight:500; line-height:1.3; }
+    .S .label { background:#f6c519; } .A .label { background:#4ade80; } .B .label { background:#60a5fa; } .C .label { background:#a6a6ae; }
+    .drop { flex:1; min-width:0; display:flex; flex-wrap:wrap; align-content:flex-start; gap:9px; padding:12px; min-height:88px; position:relative; }
+    .empty { margin:0; width:100%; align-self:center; text-align:center; font-size:14px; color:#8a9188; pointer-events:none; padding-top:6px; }
+    .pool { margin-top:22px; }
+    .pool-head { margin:0 0 8px; border:0; padding:0; background:transparent; color:var(--muted); font-size:17px; font-weight:700; text-align:left; }
+    #pool { border:1.5px dashed var(--line); border-radius:14px; background:#fff; }
+    .card { position:relative; width:112px; flex-shrink:0; border-radius:12px; display:flex; transition:opacity .15s, transform .15s; }
+    .card:hover { transform:translateY(-2px); }
+    .card.selected { outline:3px solid var(--green); outline-offset:2px; }
+    .card.dim { opacity:.3; }
+    .pick { flex:1; min-width:0; padding:0; border:1px solid var(--line); border-radius:12px; overflow:hidden; background:#fff; text-align:left; color:var(--ink); cursor:grab; display:flex; flex-direction:column; box-shadow:0 2px 6px rgba(36,41,34,.08); }
+    .poster { aspect-ratio:2 / 3; width:100%; display:flex; align-items:center; justify-content:center; padding:10px 8px; background:linear-gradient(170deg,var(--g1),var(--g2)); color:#fff; text-align:center; font-size:15px; font-weight:800; line-height:1.3; letter-spacing:-.02em; overflow-wrap:anywhere; text-shadow:0 1px 3px rgba(0,0,0,.35); }
+    .info { padding:6px 7px 8px; display:flex; flex-direction:column; gap:4px; }
+    .info .t { font-size:13px; font-weight:700; line-height:1.3; overflow-wrap:anywhere; }
+    .meta { display:flex; flex-wrap:wrap; gap:4px; font-size:11px; font-weight:700; line-height:1.6; }
+    .age, .genre { padding:0 6px; border-radius:6px; white-space:nowrap; }
+    .age { color:#fff; }
+    .age-all { background:#2f8f46; } .age-12 { background:#a57d00; } .age-15 { background:#c75f14; } .age-18 { background:#c4342b; } .age-none { background:#7a8078; }
+    .genre { background:var(--gs); color:var(--gt); }
+    .del { position:absolute; top:5px; right:5px; width:24px; height:24px; padding:0; border:0; border-radius:50%; background:rgba(255,255,255,.85); color:var(--ink); font-size:16px; line-height:24px; box-shadow:0 1px 3px rgba(0,0,0,.2); }
+    .del:hover { background:#fff; }
+    .count { display:block; font-size:12px; font-weight:700; margin-top:3px; }
+    .note { font-size:13px; color:var(--muted); margin-top:18px; }
+    :focus-visible { outline:3px solid #ba613a; outline-offset:3px; }
+    @media(max-width:420px) {
+      .label { width:84px; }
+      .label .name { font-size:17px; }
+      .label .desc { font-size:11px; }
+      .card { width:96px; }
+      .poster { font-size:13px; }
+      .drop { padding:10px; gap:8px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header><div><h1>내 영화 티어리스트</h1><p class="sub">영화를 선택한 뒤 옮길 등급 글자를 눌러 주세요. 카드를 끌어서 놓아도 됩니다.</p></div></header>
+    <form class="tools" id="add-form">
+      <input id="title" aria-label="영화 제목" placeholder="영화 제목 추가" maxlength="80">
+      <select id="genre" aria-label="장르"></select>
+      <select id="rating" aria-label="관람 등급"></select>
+      <button type="submit">추가</button>
+      <button type="button" class="reset" id="reset">처음으로</button>
+    </form>
+    <div class="filters" id="filters" role="group" aria-label="장르로 골라 보기"></div>
+    <p id="message" role="status">영화를 선택해 S·A·B·C로 나누어 보세요.</p>
+    <section class="tiers" id="tiers" aria-label="영화 등급"></section>
+    <section class="pool" aria-label="아직 안 정한 영화">
+      <button class="pool-head" id="pool-label" type="button" aria-label="미분류로 옮기기">아직 안 정한 영화</button>
+      <div class="drop" id="pool" data-tier="pool"></div>
+    </section>
+    <p class="note">같은 브라우저에서 이 파일을 다시 열면 정리한 목록이 남습니다. 다른 사람에게 파일을 보내도 내 입력 내역까지 전달되지는 않습니다.</p>
+  </main>
+  <script>
+    const KEY = "codyssey-activity-04-v2";
+    const LEVELS = ['S', 'A', 'B', 'C', 'pool'];
+    const TIER_INFO = {
+      S: { name: '명작', desc: '가장 높은 평가' },
+      A: { name: '재밌음', desc: '좋게 본 영화' },
+      B: { name: '보통', desc: '무난한 영화' },
+      C: { name: '별로', desc: '아쉬웠던 영화' }
+    };
+    const GENRES = ['미정','드라마','스릴러','SF','뮤지컬','애니메이션','액션','범죄','로맨스','코미디','공포','판타지','다큐멘터리'];
+    const RATINGS = [
+      { value: '미정', short: '미정', cls: 'age-none', label: '관람 등급 미정' },
+      { value: '전체', short: '전체', cls: 'age-all', label: '전체 관람가' },
+      { value: '12', short: '12세', cls: 'age-12', label: '12세 이상 관람가' },
+      { value: '15', short: '15세', cls: 'age-15', label: '15세 이상 관람가' },
+      { value: '18', short: '청불', cls: 'age-18', label: '청소년 관람불가' }
+    ];
+    const MOVIES = [
+      { title: "기생충", genre: "스릴러", rating: "15" },
+      { title: "인터스텔라", genre: "SF", rating: "12" },
+      { title: "라라랜드", genre: "뮤지컬", rating: "12" },
+      { title: "센과 치히로의 행방불명", genre: "애니메이션", rating: "전체" },
+      { title: "어벤져스: 엔드게임", genre: "액션", rating: "12" },
+      { title: "범죄도시", genre: "범죄", rating: "18" },
+      { title: "타이타닉", genre: "로맨스", rating: "15" },
+      { title: "토이 스토리", genre: "애니메이션", rating: "전체" }
+    ];
+    const TITLES = MOVIES.map(movie => movie.title);
+    const INITIAL_IDS = TITLES.map((title,index) => 'm' + (index + 1));
+    // 장르별 포스터 색: [위쪽 색, 아래쪽 색, 장르 칩 배경, 장르 칩 글자]
+    const GENRE_COLORS = {
+      '미정':       ['#9ca3af','#4b5563','#eceef0','#4b5563'],
+      '드라마':     ['#a855f7','#4c1d95','#f1e7fd','#5b21b6'],
+      '스릴러':     ['#64748b','#0f172a','#e5e9ef','#1e293b'],
+      'SF':         ['#3b82f6','#1e3a8a','#e1ecfd','#1e40af'],
+      '뮤지컬':     ['#f59e0b','#9a3412','#fdf0d9','#92400e'],
+      '애니메이션': ['#fb923c','#db2777','#fde8dc','#9d3412'],
+      '액션':       ['#ef4444','#7f1d1d','#fde3e3','#991b1b'],
+      '범죄':       ['#78716c','#1c1917','#ebe8e6','#44403c'],
+      '로맨스':     ['#ec4899','#831843','#fce4f1','#9d174d'],
+      '코미디':     ['#84cc16','#3f6212','#ecf7d9','#3f6212'],
+      '공포':       ['#7f1d1d','#09090b','#f3e1e1','#7f1d1d'],
+      '판타지':     ['#14b8a6','#134e4a','#d9f4f0','#115e59'],
+      '다큐멘터리': ['#22c55e','#14532d','#dcf5e4','#166534']
+    };
+    const initial = () => ({ nextId: TITLES.length + 1, items: MOVIES.map((movie,index) => ({ id: 'm' + (index + 1), title: movie.title, tier: 'pool', genre: movie.genre, rating: movie.rating })) });
+    let state = initial();
+    let selected = null;
+    let filter = '전체';
+    function fillInfo(item) {
+      const known = MOVIES.find(movie => movie.title === item.title);
+      if (!GENRES.includes(item.genre)) item.genre = known ? known.genre : '미정';
+      if (!RATINGS.some(rating => rating.value === item.rating)) item.rating = known ? known.rating : '미정';
+      return item;
+    }
+    try {
+      const stored = JSON.parse(localStorage.getItem(KEY) || 'null');
+      if (stored && Number.isSafeInteger(stored.nextId) && Array.isArray(stored.items)
+          && stored.items.every(item => item && typeof item.id === 'string' && typeof item.title === 'string' && LEVELS.includes(item.tier))) {
+        stored.items.forEach(fillInfo); state = stored;
+      }
+    } catch {}
+    function showMessage(message) { document.querySelector('#message').textContent = message; }
+    function save() {
+      try { localStorage.setItem(KEY, JSON.stringify(state)); }
+      catch { showMessage('이 브라우저에서는 저장하지 못했어요. 현재 화면에서 확인한 내용과 다시 열어 확인한 내용을 구분해 주세요.'); }
+    }
+    function move(id,tier) {
+      const item = state.items.find(item => item.id === id);
+      if (!item || !LEVELS.includes(tier)) return;
+      item.tier = tier; selected = null; save(); render();
+      showMessage((item.title || '영화') + '를 옮겼어요.');
+    }
+    function removeItem(id) {
+      const item = state.items.find(item => item.id === id);
+      if (!item || INITIAL_IDS.includes(id)) return;
+      state.items = state.items.filter(other => other.id !== id);
+      if (selected === id) selected = null;
+      save(); render(); showMessage((item.title || '영화') + ' 카드를 지웠어요.');
+    }
+    function card(item,index) {
+      const rating = RATINGS.find(value => value.value === item.rating) || RATINGS[0];
+      const custom = !INITIAL_IDS.includes(item.id);
+      const element = document.createElement('div');
+      element.className = 'card' + (custom ? ' custom' : '') + (selected === item.id ? ' selected' : '')
+        + (filter !== '전체' && item.genre !== filter ? ' dim' : '');
+      element.draggable = true; element.dataset.id = item.id;
+      const colors = GENRE_COLORS[item.genre] || GENRE_COLORS['미정'];
+      element.style.setProperty('--g1',colors[0]); element.style.setProperty('--g2',colors[1]);
+      element.style.setProperty('--gs',colors[2]); element.style.setProperty('--gt',colors[3]);
+      const pick = document.createElement('button');
+      pick.type = 'button'; pick.className = 'pick'; pick.draggable = true;
+      pick.setAttribute('aria-label',(item.title || '영화 카드') + ', ' + item.genre + ', ' + rating.label);
+      pick.setAttribute('aria-pressed',String(selected === item.id));
+      const poster = document.createElement('span'); poster.className = 'poster'; poster.setAttribute('aria-hidden','true'); poster.textContent = item.title || ' ';
+      const info = document.createElement('span'); info.className = 'info';
+      const title = document.createElement('span'); title.className = 't'; title.textContent = item.title || ' ';
+      const meta = document.createElement('span'); meta.className = 'meta';
+      const age = document.createElement('span'); age.className = 'age ' + rating.cls; age.textContent = rating.short; age.title = rating.label;
+      const genre = document.createElement('span'); genre.className = 'genre'; genre.textContent = item.genre;
+      meta.append(age,genre); info.append(title,meta); pick.append(poster,info); element.append(pick);
+      pick.addEventListener('click',event => {
+        event.stopPropagation(); selected = selected === item.id ? null : item.id; render();
+        showMessage(selected ? (item.title || '영화') + '를 선택했어요.' : '선택을 해제했어요.');
+      });
+      if (custom) {
+        const del = document.createElement('button');
+        del.type = 'button'; del.className = 'del'; del.textContent = '×';
+        del.setAttribute('aria-label',(item.title || '영화') + ' 카드 지우기');
+        del.addEventListener('click',event => { event.stopPropagation(); removeItem(item.id); });
+        element.append(del);
+      }
+      element.addEventListener('dragstart',event => { event.dataTransfer.setData('text/plain',item.id); });
+      return element;
+    }
+    function emptyNote(drop) {
+      if (!drop.children.length) { const note = document.createElement('p'); note.className = 'empty'; note.textContent = '여기에 영화를 놓으세요'; drop.append(note); }
+    }
+    function wireDrop(element,tier) {
+      element.addEventListener('dragover',event => { event.preventDefault(); element.closest('.row')?.classList.add('over'); });
+      element.addEventListener('dragleave',() => element.closest('.row')?.classList.remove('over'));
+      element.addEventListener('drop',event => { event.preventDefault(); move(event.dataTransfer.getData('text/plain'),tier); });
+      element.onclick = () => { if (selected) move(selected,tier); };
+    }
+    function renderFilters() {
+      const present = GENRES.filter(genre => state.items.some(item => item.genre === genre));
+      if (filter !== '전체' && !present.includes(filter)) filter = '전체';
+      const box = document.querySelector('#filters'); box.replaceChildren();
+      const head = document.createElement('span'); head.className = 'filter-title'; head.textContent = '장르'; box.append(head);
+      for (const genre of ['전체', ...present]) {
+        const button = document.createElement('button'); button.type = 'button'; button.textContent = genre;
+        button.setAttribute('aria-pressed',String(filter === genre));
+        button.addEventListener('click',() => {
+          filter = genre; render();
+          showMessage(genre === '전체' ? '모든 영화를 보여 줘요.' : genre + ' 영화만 또렷하게 보여 줘요.');
+        });
+        box.append(button);
+      }
+    }
+    function render() {
+      renderFilters();
+      const tiers = document.querySelector('#tiers'); tiers.replaceChildren();
+      for (const tier of LEVELS.filter(value => value !== 'pool')) {
+        const info = TIER_INFO[tier];
+        const count = state.items.filter(item => item.tier === tier).length;
+        const row = document.createElement('div'); row.className = 'row ' + tier;
+        const label = document.createElement('button'); label.type = 'button'; label.className = 'label';
+        label.setAttribute('aria-label',tier + '등급 ' + info.name + '으로 옮기기, 영화 ' + count + '편');
+        const letter = document.createElement('span'); letter.className = 'letter'; letter.textContent = tier;
+        const name = document.createElement('span'); name.className = 'name'; name.textContent = info.name;
+        const desc = document.createElement('span'); desc.className = 'desc'; desc.textContent = info.desc;
+        const counter = document.createElement('span'); counter.className = 'count'; counter.textContent = count + '편';
+        label.append(letter,name,desc,counter);
+        label.addEventListener('click',() => { if (selected) move(selected,tier); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
+        const drop = document.createElement('div'); drop.className = 'drop'; drop.dataset.tier = tier;
+        state.items.forEach((item,index) => { if (item.tier === tier) drop.append(card(item,index)); });
+        emptyNote(drop);
+        wireDrop(drop,tier); row.append(label,drop); tiers.append(row);
+      }
+      const pool = document.querySelector('#pool'); pool.replaceChildren();
+      state.items.forEach((item,index) => { if (item.tier === 'pool') pool.append(card(item,index)); });
+      emptyNote(pool);
+      const poolCount = state.items.filter(item => item.tier === 'pool').length;
+      document.querySelector('#pool-label').textContent = '아직 안 정한 영화 (' + poolCount + '편)';
+    }
+    function fillSelects() {
+      const genre = document.querySelector('#genre'), rating = document.querySelector('#rating');
+      GENRES.forEach(value => genre.append(new Option(value === '미정' ? '장르 (미정)' : value, value)));
+      RATINGS.forEach(value => rating.append(new Option(value.value === '미정' ? '관람 등급 (미정)' : value.label, value.value)));
+    }
+    fillSelects();
+    wireDrop(document.querySelector('#pool'),'pool');
+    document.querySelector('#pool-label').addEventListener('click',() => { if (selected) move(selected,'pool'); else showMessage('먼저 영화 카드를 선택해 주세요.'); });
+    document.querySelector('#add-form').addEventListener('submit',event => {
+      event.preventDefault(); const input = document.querySelector('#title'); const title = input.value.trim();
+      if (!title) { showMessage('영화 제목을 입력해 주세요.'); input.focus(); return; }
+      if (state.items.some(item => item.title === title)) { showMessage('이미 있는 영화 제목이에요. 다른 제목을 넣어 주세요.'); return; }
+      const genre = document.querySelector('#genre'), rating = document.querySelector('#rating');
+      state.items.push({ id: 'm' + state.nextId++, title, tier: 'pool', genre: genre.value, rating: rating.value });
+      save(); render(); input.value = ''; genre.value = '미정'; rating.value = '미정'; showMessage('영화를 추가했어요.'); input.focus();
+    });
+    document.querySelector('#reset').addEventListener('click',() => {
+      state = initial(); selected = null; filter = '전체'; document.querySelector('#title').value = '';
+      document.querySelector('#genre').value = '미정'; document.querySelector('#rating').value = '미정';
+      save(); render(); showMessage('처음 목록으로 돌아왔어요.');
+    });
+    render();
+  </script>
+</body>
+</html>
