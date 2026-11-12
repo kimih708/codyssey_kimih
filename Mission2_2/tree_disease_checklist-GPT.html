@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나무가 아픈가요? — 가로수 병해 진단 체크리스트</title>
+<style>
+:root{--green:#246b45;--green2:#eaf5ed;--ink:#20312a;--muted:#66756d;--line:#dce5de;--bg:#f5f8f5;--red:#b42318;--yellow:#946200;--blue:#28628a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Malgun Gothic","맑은 고딕",sans-serif;line-height:1.55}
+main{max-width:1100px;margin:auto;padding:24px 18px 48px}.hero{background:linear-gradient(135deg,#e4f2e7,#f8fbf8);border:1px solid #d3e6d7;border-radius:20px;padding:28px;margin-bottom:20px}
+h1{font-size:clamp(1.65rem,4vw,2.35rem);margin:0 0 8px;color:#174d32}.lead{margin:0;color:#40594b}.notice{margin-top:15px;padding:10px 13px;border-radius:10px;background:#fff8df;color:#735500;font-weight:700;display:inline-block}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:22px;margin:18px 0;box-shadow:0 3px 12px #173d2410}
+h2{font-size:1.25rem;margin:0 0 14px}h3{font-size:1.05rem;margin:0 0 10px}.step{color:var(--green);margin-right:7px}
+.species{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:9px}
+.species button,.action button,.result-actions button{border:1px solid #cbd8ce;border-radius:10px;background:#fff;padding:11px 12px;font:inherit;font-weight:650;color:var(--ink);cursor:pointer}
+.species button:hover,.action button:hover,.result-actions button:hover{border-color:var(--green);background:#f3faf4}
+.species button[aria-pressed=true]{background:var(--green);border-color:var(--green);color:white}
+.hint{padding:16px;background:#f6f8f6;border:1px dashed #cbd8ce;border-radius:12px;color:var(--muted)}
+.summaryline{font-weight:700;margin-bottom:7px}.disease-list{font-size:.92rem;color:var(--muted);margin-bottom:14px}
+.symptom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.area{border:1px solid var(--area);border-top:5px solid var(--area);border-radius:13px;padding:14px;min-width:0;background:#fff}
+.area h3{display:flex;justify-content:space-between;gap:8px}.area .count{font-size:.82rem;color:var(--muted);font-weight:500}
+.symptom{display:flex;gap:9px;align-items:flex-start;padding:8px 2px;border-bottom:1px solid #edf1ed;font-size:.94rem}
+.symptom:last-of-type{border-bottom:0}.symptom input{margin-top:5px;accent-color:var(--green);width:17px;height:17px;flex:0 0 auto}
+.warnmark{color:#b42318;font-weight:800}.empty{font-size:.88rem;color:#78857d;padding:10px 0}
+textarea{display:block;width:100%;min-height:68px;resize:vertical;border:1px solid #cbd8ce;border-radius:9px;padding:9px;font:inherit;font-size:.9rem;margin-top:9px}
+.charcount{font-size:.78rem;color:var(--muted);text-align:right}
+.action,.result-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.action .primary,.result-actions .primary{background:var(--green);color:#fff;border-color:var(--green)}
+.action .danger{color:#9c2525}.feedback{margin-top:12px;color:var(--green);font-weight:650}.error{color:var(--red);font-weight:700}
+#results{scroll-margin-top:16px}.risk-banner{padding:15px 17px;border-radius:12px;background:#b42318;color:white;font-weight:800;margin-bottom:15px}
+.other-box{background:#f2f6fa;border:1px solid #d8e4ee;border-radius:12px;padding:14px;margin-bottom:15px}
+.cards{display:grid;gap:12px}.candidate{border:1px solid var(--line);border-left:6px solid var(--risk);border-radius:13px;padding:16px;background:#fff}
+.candidate-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.candidate h3{margin:0;font-size:1.08rem}
+.pill{white-space:nowrap;border-radius:999px;padding:4px 10px;font-size:.82rem;font-weight:800;background:var(--pillbg);color:var(--pillfg)}
+.match{font-weight:800;margin:10px 0 5px}.small{font-size:.9rem;color:var(--muted)}
+.candidate ul{margin:7px 0;padding-left:20px}.photo{margin-top:10px;padding:12px;border-radius:9px;background:#f6f8f6;color:var(--muted);font-size:.86rem}
+.risk-guide{display:grid;gap:8px;margin-top:16px}.risk-row{border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;grid-template-columns:130px 1fr;gap:10px}.risk-row.current{border:2px solid var(--risk);background:#fffdf7}
+.risk-name{font-weight:800}.current-label{font-size:.8rem;font-weight:800;color:var(--risk);margin-left:6px}
+.no-match{padding:16px;border:1px dashed #cbd8ce;border-radius:12px;background:#f8faf8}
+details{border:1px solid var(--line);border-radius:10px;margin:8px 0;overflow:hidden;background:#fff}
+summary{cursor:pointer;padding:13px 15px;font-weight:750}details .detail-body{padding:0 15px 15px;color:#45564c}
+.detail-body p{margin:6px 0}.badge{display:inline-block;border-radius:99px;padding:2px 8px;font-size:.8rem;font-weight:750;margin-left:6px}
+footer{font-size:.84rem;color:var(--muted);padding:8px 3px 25px}footer p{margin:6px 0}
+@media(max-width:650px){main{padding:12px 11px 32px}.hero,.panel{padding:17px;border-radius:13px}.symptom-grid{grid-template-columns:1fr}.risk-row{grid-template-columns:1fr;gap:3px}.candidate-head{display:block}.candidate-head .pill{display:inline-block;margin-top:8px}.species{grid-template-columns:repeat(2,minmax(0,1fr))}.species button{padding:10px 7px;font-size:.9rem}}
+@media print{body{background:#fff;color:#000;font-size:10.5pt}main{max-width:none;padding:0}.hero,.panel{box-shadow:none;border:0;padding:10px 0;margin:8px 0}.hero{background:#fff}.species,.action,.result-actions,.hint,footer .no-print,#speciesPanel{display:none!important}#symptomPanel{display:block!important}.area{break-inside:avoid}.candidate,details{break-inside:avoid}.risk-banner{print-color-adjust:exact;-webkit-print-color-adjust:exact}.photo{background:#fff;border:1px solid #ddd}#results{display:block!important}}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+<h1>🌳 나무가 아픈가요?</h1>
+<p class="lead">가로수의 수종과 관찰 증상을 선택해 의심 병해 후보와 위험도를 확인하는 현장용 체크리스트입니다.</p>
+<div class="notice">이 결과는 참고용 1차 진단입니다. 최종 진단은 나무병원(나무의사)에 의뢰하세요.</div>
+</header>
+
+<section class="panel" id="speciesPanel">
+<h2><span class="step">①</span>수종 선택</h2>
+<div class="species" id="speciesButtons" aria-label="수종 선택"></div>
+</section>
+
+<section class="panel" id="symptomPanel">
+<h2><span class="step">②</span>증상 체크</h2>
+<div id="symptomContent"><div class="hint">① 수종을 먼저 선택하면 그 수종에 맞는 증상 체크 항목이 나타납니다.</div></div>
+<div class="action">
+<button class="primary" id="diagnoseBtn" type="button">진단하기</button>
+<button class="danger" id="resetBtn" type="button">초기화</button>
+</div>
+<div id="mainMessage" aria-live="polite"></div>
+</section>
+
+<section class="panel" id="results">
+<h2><span class="step">③</span>진단 결과</h2>
+<div id="resultContent"><div class="hint">수종과 증상을 선택한 뒤 [진단하기]를 누르세요.</div></div>
+<div class="result-actions" id="resultActions" hidden>
+<button class="primary" id="copyBtn" type="button">결과 복사</button>
+<button id="printBtn" type="button">인쇄</button>
+</div>
+<div id="copyMessage" class="feedback" aria-live="polite"></div>
+</section>
+
+<section class="panel" id="encyclopedia">
+<h2>📚 병해 목록 — 미니 도감</h2>
+<p class="small">병해 이름을 누르면 대표 증상, 대상 수종, 위험도와 관리 참고사항이 펼쳐집니다. 이 목록은 수종 선택과 관계없이 열람할 수 있습니다.</p>
+<div id="diseaseList"></div>
+</section>
+
+<footer>
+<p><strong>자료 출처 및 범위</strong></p>
+<p>기획서의 자료 대조 결과(2026-11-11)에 기재된 국립산림과학원·산림청 발표 자료, 국내 학술지 논문(KoreaScience), 한국조경수협회 「조경수의 병해충」 연재 및 나무병원 연구자 자료를 요약한 기획서 내용을 기준으로 구성했습니다.</p>
+<p><strong>사진 출처·라이선스:</strong> 이번 제공 자료에는 병해별 사진 URL 및 개별 라이선스 정보가 포함되어 있지 않아 사진을 임의 삽입하지 않았습니다. 사용 권한(CC BY, CC BY-SA, 퍼블릭 도메인)이 확인된 사진을 확보한 뒤 추가해야 합니다.</p>
+<p><strong>면책:</strong> 이 도구는 제한된 수종 6종과 병해 13개를 대상으로 하는 참고용 1차 진단입니다. 증상 유사성으로 오진할 수 있으며, 기록한 기타 증상은 일치율 계산에 포함되지 않습니다. 약제명·희석 배수·확진을 제공하지 않습니다. 줄기 부후·균열·기울어짐 등 도복 위험이 의심되면 주변 통행을 통제하고 즉시 전문가 점검을 받으세요.</p>
+<p>단일 HTML · 외부 라이브러리 및 서버/API 미사용 · 입력 내용은 저장되지 않으며 페이지 새로고침 시 사라집니다.</p>
+</footer>
+</main>
+<script>
+"use strict";
+const symptoms = {
+S1:{area:"잎",text:"잎 표면이 흰 가루로 덮여 있다"},
+S2:{area:"잎",text:"잎에 갈색 반점이 생기고 그 자리에 구멍이 뚫렸다"},
+S3:{area:"잎",text:"잎 앞면이 황백색으로 얼룩지고, 뒷면에 검은 점(배설물)이 있다"},
+S4:{area:"잎",text:"잎이 갉아 먹혀 잎맥만 남았거나, 실(거미줄 모양)로 잎이 뭉쳐 있다"},
+S5:{area:"잎",text:"잎에 바늘구멍 같은 작은 구멍이 많고 잎 가장자리가 갈색으로 마른다"},
+S6:{area:"잎",text:"잎·가지가 검은 그을음으로 덮이고 끈적거린다"},
+S7:{area:"잎",text:"잎 가장자리부터 갈색으로 타들어 가거나 잎이 작아졌고, 도로 쪽 가지가 더 심하다"},
+S9:{area:"가지",text:"가지 일부가 혹처럼 부풀고 잔가지가 빗자루처럼 뭉쳐 나며, 그 부분에 꽃이 피지 않는다"},
+S10:{area:"가지",text:"가지·줄기에 작은 껍데기 같은 벌레(깍지)가 다닥다닥 붙어 있다"},
+S11:{area:"가지",text:"말라 죽은 가지가 나무 곳곳에 있다"},
+S12:{area:"줄기",text:"줄기에서 진(수액)이 흐르고 갈색 톱밥 같은 배설물이 섞여 나온다"},
+S13:{area:"줄기",text:"줄기나 뿌리목(땅과 닿는 부분)에 버섯이 났다",danger:true},
+S14:{area:"줄기",text:"줄기에 썩은 구멍이 있거나, 두드리면 속이 빈 소리가 난다",danger:true},
+S15:{area:"줄기",text:"줄기에 세로로 깊게 갈라진 틈이 있다",danger:true},
+S16:{area:"뿌리·주변",text:"나무가 기울었고 뿌리 주변 흙이나 보도블록이 들려 있다",danger:true},
+S17:{area:"뿌리·주변",text:"겨울에 제설제(염화칼슘)를 뿌리는 도로 바로 옆에 있다"},
+S19:{area:"잎",text:"잎이 제철보다 일찍 떨어진다"},
+S20:{area:"잎",text:"털이 많은 애벌레가 무리 지어 잎을 먹고 있다"},
+S21:{area:"잎",text:"잎 앞면에 노란색·갈색 반점이 있고, 잎 뒷면에 노란 가루 덩어리가 붙어 있다"},
+S22:{area:"뿌리·주변",text:"나무 가까이에 대나무가 자라고 있다"},
+S23:{area:"줄기",text:"가지·줄기 껍질 틈에 흰색·회색 솜 같은 주머니가 붙어 있고, 터뜨리면 분홍색 액이 나온다"},
+S24:{area:"잎",text:"잎에 테두리 없는 짙은 갈색 반점이 생기고, 반점 주변 잎이 노랗게 변한다"}
+};
+const diseases = [
+{id:"D1",name:"흰가루병",kind:"병",species:["벚나무","느티나무","양버즘나무","배롱나무"],sym:["S1","S19"],risk:"관찰",timing:"발생 초기",care:"흰 가루 증상과 조기 낙엽의 진행 여부를 관찰하세요. 정확한 병징 확인과 방제 방법은 나무병원과 상담하세요.",basis:"벚나무 국내 기록 및 느티나무·배롱나무 등의 발생 자료를 기획서 대조 결과에서 확인했습니다."},
+{id:"D2",name:"벚나무 갈색무늬구멍병",kind:"병",species:["벚나무"],sym:["S2","S19"],risk:"관찰",timing:"발병 초기",care:"갈색 반점과 구멍, 조기 낙엽의 진행을 확인하세요. 방제 월은 기획서에서 확인되지 않아 발병 초기로 표시했습니다.",basis:"국립생태원(2019) 구례 왕벚나무 가로수 조기 낙엽 관련 확인."},
+{id:"D3",name:"버즘나무방패벌레",kind:"해충",species:["양버즘나무"],sym:["S3","S19"],risk:"조치 필요",timing:"발생 초기",care:"잎 뒷면의 해충과 황백색 피해 잎을 확인하고 발생 초기 나무병원에 방제 방법을 상담하세요.",basis:"국내 첫 보고(1996) 및 잎 뒷면 흡즙 피해를 기획서 대조 결과에서 확인."},
+{id:"D4",name:"미국흰불나방",kind:"해충",species:["벚나무","양버즘나무","이팝나무"],sym:["S4","S20"],risk:"조치 필요",timing:"1세대 5~6월 · 2세대 발생 초기 7월 중순~8월 초",care:"잎을 뭉쳐 먹는 초기 피해와 유충 발생을 살펴 적기에 관리·방제를 검토하세요. 약제 사용은 나무병원과 상담하세요.",basis:"국립산림과학원 예보 기준 및 기획서의 국내 발생 기록. 느티나무는 2022년 생활권 수목 조사에서 발생하지 않아 대상에서 제외."},
+{id:"D5",name:"느티나무벼룩바구미",kind:"해충",species:["느티나무"],sym:["S5","S19"],risk:"조치 필요",timing:"월동 성충 4월 · 새 성충 5월 출현",care:"잎의 작은 구멍과 가장자리 갈변, 성충 출현을 관찰하세요. 잎 증상과 방제 세부사항은 추가 자료 대조가 필요합니다.",basis:"느티나무 주요 해충 및 4월 월동 성충·5월 새 성충 출현(2006 논문)을 기획서 대조 결과에서 확인. 잎 증상은 국내 자료에서 직접 확인하지 못함."},
+{id:"D6",name:"깍지벌레·그을음병",kind:"해충·병",species:["은행나무","벚나무","느티나무","양버즘나무","이팝나무","배롱나무"],sym:["S6","S10","S11"],risk:"조치 필요",timing:"발생 초기",care:"깍지벌레 발생 여부와 감로·그을음 피해를 함께 확인하세요. 발생 정도에 따른 관리·방제는 나무병원과 상담하세요.",basis:"깍지벌레 흡즙과 그을음병 발생 관계 및 넓은 기주 범위를 기획서 대조 결과에서 확인."},
+{id:"D7",name:"제설염 피해",kind:"생리장해",species:["은행나무","벚나무","느티나무","양버즘나무","이팝나무","배롱나무"],sym:["S7","S17","S11"],risk:"조치 필요",timing:"피해 증상 확인 시",care:"제설제 살포 도로와의 인접성, 잎 가장자리 갈변과 잎 크기 감소를 확인하세요. 기획서 대조 결과에서 근거가 확인되지 않은 물 세척 방법은 안내하지 않습니다.",basis:"국립산림과학원 연구에서 이팝·왕벚·은행나무의 잎 가장자리 갈변·잎 크기 감소 확인."},
+{id:"D8",name:"벚나무 빗자루병",kind:"병",species:["벚나무"],sym:["S9","S11"],risk:"조치 필요",timing:"증상 가지 확인 시",care:"증상 가지는 병징 부위에서 10cm 이상 아래를 잘라내고 작업 도구를 소독하세요. 기획서 대조 결과상 예방·치료 약제는 없습니다.",basis:"국립산림과학원(2024) 자료. 자른 면 보호제 및 11~3월 시기는 근거가 없어 제외."},
+{id:"D9",name:"복숭아유리나방",kind:"해충",species:["벚나무"],sym:["S12","S11"],risk:"조치 필요",timing:"성충 발생 시기 5~7월 초 · 8~10월 중순",care:"줄기 수액·배설물 흔적과 가지 고사를 확인하고 전문가에게 동정·관리 방법을 문의하세요. 벚나무 기주 및 제시 증상은 추가 확인이 필요합니다.",basis:"애벌레의 형성층 가해 및 성충 발생 시기를 기획서 대조 결과에서 확인. 벚나무 기주 기록과 진·배설물 증상은 직접 확인하지 못함."},
+{id:"D11",name:"줄기 썩음(목재부후)",kind:"병",species:["은행나무","벚나무","느티나무","양버즘나무","이팝나무","배롱나무"],sym:["S13","S14","S15","S11"],risk:"즉시 전문가",timing:"증상 확인 즉시",care:"버섯 발생·공동·균열 또는 고사 가지가 보이면 주변 통행을 통제하고 나무병원(나무의사)에 즉시 점검을 의뢰하세요.",basis:"수목 육안 조사표의 버섯·공동·균열 항목 및 지자체 가로수 정비 사례를 기획서 대조 결과에서 확인."},
+{id:"D12",name:"이팝나무 녹병",kind:"병",species:["이팝나무"],sym:["S21","S22"],risk:"조치 필요",timing:"발생 초기",care:"잎 앞면의 황색·갈색 반점과 뒷면의 황색 녹포자기, 주변 대나무 유무를 확인하세요. 발생 초기 전문가와 관리 방법을 상담하세요.",basis:"2020년 첫 보고 및 대나무가 중간기주라는 내용을 기획서 대조 결과에서 확인."},
+{id:"D13",name:"주머니깍지벌레",kind:"해충",species:["배롱나무"],sym:["S23","S6"],risk:"조치 필요",timing:"1세대 4월 하순~5월 하순 · 2세대 8월 하순~10월 상순",care:"흰색·회색 솜 같은 알주머니와 분홍색 액, 감로에 따른 그을음 피해를 확인하세요. 발생 세대와 시기를 고려해 나무병원과 방제를 상담하세요.",basis:"한국응용곤충학회지(1993)의 연 2회 발생 시기 및 기획서에 정리된 농업기술보급 자료."},
+{id:"D14",name:"배롱나무 갈색점무늬병",kind:"병",species:["배롱나무"],sym:["S24","S19"],risk:"관찰",timing:"발생 초기",care:"짙은 갈색 반점과 주변 황화, 늦여름 조기 낙엽을 관찰하세요. 국내 공식 병명은 확인되지 않아 병명과 방제 방법을 추가 확인해야 합니다.",basis:"Pseudocercospora lythracearum 관련 분포 및 해외 대학 자료를 기획서 대조 결과에서 확인. 국내 공식 병명은 미확인."}
+];
+const speciesData = [
+{name:"은행나무",ids:["D6","D7","D11"],sym:["S6","S7","S10","S11","S13","S14","S15","S16","S17"]},
+{name:"벚나무",ids:["D1","D2","D4","D6","D7","D8","D9","D11"],sym:["S1","S2","S4","S6","S7","S9","S10","S11","S12","S13","S14","S15","S16","S17","S19","S20"]},
+{name:"느티나무",ids:["D1","D5","D6","D7","D11"],sym:["S1","S5","S6","S7","S10","S11","S13","S14","S15","S16","S17","S19"]},
+{name:"양버즘나무(플라타너스)",ids:["D1","D3","D4","D6","D7","D11"],sym:["S1","S3","S4","S6","S7","S10","S11","S13","S14","S15","S16","S17","S19","S20"]},
+{name:"이팝나무",ids:["D4","D6","D7","D11","D12"],sym:["S4","S6","S7","S10","S11","S13","S14","S15","S16","S17","S20","S21","S22"]},
+{name:"배롱나무",ids:["D1","D6","D7","D11","D13","D14"],sym:["S1","S6","S7","S10","S11","S13","S14","S15","S16","S17","S19","S23","S24"]},
+{name:"기타·모름",ids:diseases.map(d=>d.id),sym:["S1","S2","S3","S4","S5","S6","S7","S9","S10","S11","S12","S13","S14","S15","S16","S17","S19","S20","S21","S22","S23","S24"]}
+];
+const areas=[{name:"잎",emoji:"🍃",color:"#72a982"},{name:"가지",emoji:"🌿",color:"#86a7c9"},{name:"줄기",emoji:"🪵",color:"#c59a72"},{name:"뿌리·주변",emoji:"🌱",color:"#a9a06c"}];
+const riskInfo={
+"관찰":{rank:1,color:"#27834b",bg:"#e8f5eb",fg:"#176238",desc:"당장 위험은 낮습니다. 증상이 번지는지 지켜보며 병든 잎 정리, 통풍 관리 같은 기본 관리를 합니다."},
+"조치 필요":{rank:2,color:"#d49a16",bg:"#fff4d5",fg:"#805900",desc:"그대로 두면 나무가 약해지거나 피해가 번질 수 있습니다. 방제 적기에 맞춰 관리·방제를 검토하고, 약제 사용은 나무병원과 상담합니다."},
+"즉시 전문가":{rank:3,color:"#c62828",bg:"#fde9e7",fg:"#a51d1d",desc:"나무가 말라 죽거나 쓰러질 수 있습니다. 바로 나무병원(나무의사)에 진단을 의뢰하고 필요하면 주변 통행을 통제합니다."}
+};
+let selectedSpecies=null, checked=new Set(), notes={잎:"",가지:"",줄기:"","뿌리·주변":""}, lastResult=null;
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function renderSpecies(){
+ $("speciesButtons").innerHTML=speciesData.map((s,i)=>`<button type="button" data-index="${i}" aria-pressed="false">${esc(s.name)}</button>`).join("");
+ $("speciesButtons").addEventListener("click",e=>{const b=e.target.closest("button[data-index]");if(b)chooseSpecies(Number(b.dataset.index));});
+}
+function chooseSpecies(i){
+ const next=speciesData[i];if(selectedSpecies===next.name)return;
+ const hadData=checked.size>0||Object.values(notes).some(v=>v.trim())||lastResult!==null;
+ selectedSpecies=next.name;checked.clear();notes={잎:"",가지:"",줄기:"","뿌리·주변":""};lastResult=null;
+ document.querySelectorAll("#speciesButtons button").forEach((b,j)=>b.setAttribute("aria-pressed",String(i===j)));
+ renderSymptoms();$("resultContent").innerHTML='<div class="hint">증상을 체크한 뒤 [진단하기]를 누르세요.</div>';$("resultActions").hidden=true;$("copyMessage").textContent="";
+ $("mainMessage").className=hadData?"feedback":"";
+ $("mainMessage").textContent=hadData?"수종을 바꿔 이전 증상 체크와 기록을 초기화했습니다.":"";
+}
+function renderSymptoms(){
+ const sp=speciesData.find(s=>s.name===selectedSpecies);if(!sp){$("symptomContent").innerHTML='<div class="hint">① 수종을 먼저 선택하면 그 수종에 맞는 증상 체크 항목이 나타납니다.</div>';return;}
+ const targets=sp.ids.map(id=>diseases.find(d=>d.id===id));
+ let out=`<div class="summaryline">${esc(sp.name)} — 진단 대상 병해 ${sp.ids.length}개 · 증상 체크 항목 ${sp.sym.length}개</div><div class="disease-list">진단 대상: ${targets.map(d=>esc(d.name)).join(" · ")}</div><div class="symptom-grid">`;
+ areas.forEach(a=>{
+  const ids=sp.sym.filter(id=>symptoms[id].area===a.name);
+  out+=`<div class="area" style="--area:${a.color}"><h3>${a.emoji} ${a.name}<span class="count">${ids.length}개</span></h3>`;
+  if(!ids.length)out+='<div class="empty">목록 증상이 없습니다. 보이는 증상은 아래에 기록하세요.</div>';
+  ids.forEach(id=>{const s=symptoms[id];out+=`<label class="symptom"><input type="checkbox" data-symptom="${id}"><span>${s.danger?'<span class="warnmark">⚠ </span>':""}<strong>${id}</strong> ${esc(s.text)}</span></label>`;});
+  out+=`<label for="note-${a.name}"><strong>목록에 없는 ${a.name} 증상 기록</strong></label><textarea id="note-${a.name}" data-note="${a.name}" maxlength="300" placeholder="관찰한 기타 증상을 입력하세요 (최대 300자)">${esc(notes[a.name])}</textarea><div class="charcount" id="count-${a.name}">${notes[a.name].length}/300</div></div>`;
+ });
+ out+="</div>";$("symptomContent").innerHTML=out;
+ $("symptomContent").querySelectorAll("[data-symptom]").forEach(el=>el.addEventListener("change",()=>{if(el.checked)checked.add(el.dataset.symptom);else checked.delete(el.dataset.symptom);}));
+ $("symptomContent").querySelectorAll("[data-note]").forEach(el=>el.addEventListener("input",()=>{notes[el.dataset.note]=el.value;$("count-"+el.dataset.note).textContent=el.value.length+"/300";}));
+}
+function diagnose(){
+ $("mainMessage").textContent="";$("mainMessage").className="";
+ if(!selectedSpecies||(!checked.size&&!Object.values(notes).some(v=>v.trim()))){$("mainMessage").textContent="수종을 고르고, 증상을 1개 이상 체크하거나 기록하세요.";$("mainMessage").className="error";return;}
+ const sp=speciesData.find(s=>s.name===selectedSpecies);
+ const candidates=sp.ids.map(id=>{
+  const d=diseases.find(x=>x.id===id),hits=d.sym.filter(s=>checked.has(s));
+  return {...d,hits,total:d.sym.length,pct:Math.round(hits.length/d.sym.length*100)};
+ }).filter(d=>d.pct>0).sort((a,b)=>b.pct-a.pct||riskInfo[b.risk].rank-riskInfo[a.risk].rank||b.hits.length-a.hits.length||Number(a.id.slice(1))-Number(b.id.slice(1))).slice(0,3);
+ lastResult={date:new Date(),species:selectedSpecies,checked:[...checked],notes:{...notes},candidates,fall:["S13","S14","S15","S16"].some(s=>checked.has(s))};
+ renderResult(lastResult);
+}
+function renderResult(r){
+ let out="";
+ if(r.fall)out+='<div class="risk-banner">⚠ 쓰러짐 위험 — 주변 통행을 통제하고 즉시 전문가 점검</div>';
+ const noteEntries=Object.entries(r.notes).filter(([k,v])=>v.trim());
+ if(noteEntries.length)out+='<div class="other-box"><strong>기록한 기타 증상</strong>'+noteEntries.map(([k,v])=>`<p>[${esc(k)}] ${esc(v)}</p>`).join("")+'</div>';
+ if(r.candidates.length){
+  out+='<div class="cards">';
+  r.candidates.forEach(d=>{const ri=riskInfo[d.risk];out+=`<article class="candidate" style="--risk:${ri.color};--pillbg:${ri.bg};--pillfg:${ri.fg}"><div class="candidate-head"><h3>${d.id} · ${esc(d.name)}</h3><span class="pill">${esc(d.risk)}</span></div><div class="match">${d.hits.length}/${d.total} (${d.pct}%) 일치</div><div class="small">맞은 증상: ${d.hits.map(id=>`${id} ${esc(symptoms[id].text)}`).join(" · ")}</div><p><strong>관리 참고:</strong> ${esc(d.care)}</p><p><strong>방제·관찰 시기:</strong> ${esc(d.timing)}</p><p class="small"><strong>근거 메모:</strong> ${esc(d.basis)}</p><div class="photo">사진 없음 — 기획서에 사용 권한이 확인된 사진 URL이 제공되지 않았습니다.</div></article>`;});
+  out+='</div>';
+ }else out+='<div class="no-match">일치하는 병해가 없습니다. 증상이 계속되면 나무병원에 상담하세요.</div>';
+ out+='<h3 style="margin-top:20px">위험도 등급 안내</h3><div class="risk-guide">';
+ Object.entries(riskInfo).forEach(([name,ri])=>{const current=r.candidates.some(d=>d.risk===name);out+=`<div class="risk-row ${current?"current":""}" style="--risk:${ri.color}"><div class="risk-name">${name}${current?'<span class="current-label">← 이번 결과</span>':""}</div><div>${ri.desc}</div></div>`;});
+ out+='</div><p class="small">빨간 ‘쓰러짐 위험’ 배너는 등급과 별도로 S13~S16을 체크하면 항상 표시됩니다.</p>';
+ $("resultContent").innerHTML=out;$("resultActions").hidden=false;$("copyMessage").textContent="";
+}
+function plainResult(r){
+ const fmtDate=r.date.toLocaleDateString("ko-KR");
+ const lines=[`가로수 병해 진단 결과`,`진단 날짜: ${fmtDate}`,`수종: ${r.species}`,"",`체크한 증상: ${r.checked.length?r.checked.map(id=>`${id} ${symptoms[id].text}`).join(" / "):"없음"}`,"","기록한 기타 증상:"];
+ Object.entries(r.notes).filter(([k,v])=>v.trim()).forEach(([k,v])=>lines.push(`[${k}] ${v}`));
+ if(!Object.values(r.notes).some(v=>v.trim()))lines.push("없음");
+ lines.push("","병해 후보:");
+ if(r.candidates.length)r.candidates.forEach((d,i)=>lines.push(`${i+1}. ${d.name} — ${d.hits.length}/${d.total} (${d.pct}%) · ${d.risk}`));
+ else lines.push("일치하는 병해 없음");
+ lines.push("",`도복 경고: ${r.fall?"있음 — 주변 통행 통제 및 즉시 전문가 점검":"없음"}`,"위험도 요약: "+(["관찰","조치 필요","즉시 전문가"].filter(n=>r.candidates.some(d=>d.risk===n)).join(" / ")||"일치 후보 없음"),"","참고용 1차 진단이며 최종 확진은 나무병원(나무의사)에 의뢰하세요.");
+ return lines.join("\n");
+}
+async function copyResult(){
+ if(!lastResult)return;const txt=plainResult(lastResult);
+ try{await navigator.clipboard.writeText(txt);$("copyMessage").textContent="복사되었습니다.";}
+ catch(e){const ta=document.createElement("textarea");ta.value=txt;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");$("copyMessage").textContent="복사되었습니다.";}catch(_){$("copyMessage").textContent="복사에 실패했습니다. 브라우저 권한을 확인하세요.";}ta.remove();}
+}
+function renderEncyclopedia(){
+ $("diseaseList").innerHTML=diseases.map(d=>{const ri=riskInfo[d.risk];return `<details><summary>${d.id} · ${esc(d.name)} <span class="badge" style="background:${ri.bg};color:${ri.fg}">${esc(d.risk)}</span></summary><div class="detail-body"><p><strong>구분:</strong> ${esc(d.kind)}</p><p><strong>대상 수종:</strong> ${d.species.map(esc).join(", ")}</p><p><strong>대표 증상:</strong> ${d.sym.map(id=>`${id} ${esc(symptoms[id].text)}`).join(" / ")}</p><p><strong>관리 참고:</strong> ${esc(d.care)}</p><p><strong>방제·관찰 시기:</strong> ${esc(d.timing)}</p><p class="small"><strong>자료 확인 메모:</strong> ${esc(d.basis)}</p></div></details>`;}).join("");
+}
+function resetAll(){
+ selectedSpecies=null;checked.clear();notes={잎:"",가지:"",줄기:"","뿌리·주변":""};lastResult=null;
+ document.querySelectorAll("#speciesButtons button").forEach(b=>b.setAttribute("aria-pressed","false"));
+ renderSymptoms();$("resultContent").innerHTML='<div class="hint">수종과 증상을 선택한 뒤 [진단하기]를 누르세요.</div>';$("resultActions").hidden=true;$("mainMessage").textContent="";$("copyMessage").textContent="";
+}
+renderSpecies();renderSymptoms();renderEncyclopedia();
+$("diagnoseBtn").addEventListener("click",diagnose);$("resetBtn").addEventListener("click",resetAll);
+$("copyBtn").addEventListener("click",copyResult);$("printBtn").addEventListener("click",()=>window.print());
+</script>
+</body>
+</html>
